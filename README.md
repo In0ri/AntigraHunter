@@ -13,6 +13,8 @@ AntigraHunter is a "Skill" designed for your AI Assistant (Antigravity). For the
 3. **Point the path** to the downloaded `AntigraHunter` directory.
 4. The AI will automatically read the rules and system definitions contained in this directory.
 
+#### *Only support Antigravity 2.0 version 2.0.6,2.0.10*
+#### *Good news: testing confirms excellent compatibility with Hermes Agent on DeepSeek-v4-pro.*
 ---
 
 ## Usage
