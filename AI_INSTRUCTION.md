@@ -371,6 +371,10 @@ AntigraHunter Security Report
 ├── Finding Card: #vuln-001
 │   ├── Vulnerability Path (data flow diagram)
 │   ├── Code Evidence (file:line với syntax highlight + vulnerable line highlight)
+│   ├── ⚡ EXPLOIT CHAIN (MỚI — BẮT BUỘC cho multi-step vulnerabilities)
+│   │   ├── Step 1: <mô tả> — HTTP Request + Response Evidence
+│   │   ├── Step 2: <mô tả> — HTTP Request + Response Evidence
+│   │   └── Step N: <mô tả> — HTTP Request + Response Evidence
 │   ├── Working POC Request (raw HTTP block)
 │   ├── Reproduction Command (cURL — copy/paste ready, đầy đủ headers)
 │   ├── Response Evidence (response thực tế, truncate nếu quá dài)
@@ -386,6 +390,84 @@ AntigraHunter Security Report
 - Copy-to-clipboard buttons cho mọi code block
 - Executive Summary table với anchor links đến từng finding
 - Timestamp + target metadata ở header
+
+### ⚡ EXPLOIT CHAIN — BẮT BUỘC cho Multi-Step Vulnerabilities
+
+**Khi một vulnerability yêu cầu nhiều bước để kích hoạt payload (VD: Webhook SSRF cần Create Webhook → Create EventRule → Trigger Event, hoặc Chain exploit), Reporter PHẢI hiển thị đầy đủ Exploit Chain gồm:**
+
+Mỗi bước trong chain phải có:
+1. **Step Number + Mô tả** — Bước này làm gì, gọi endpoint nào
+2. **HTTP Request** — Raw HTTP request block hiển thị chính xác method, path, headers, body
+3. **cURL Command** — Lệnh curl copy/paste ready cho từng bước riêng lẻ
+4. **Response Evidence** — Response thực tế nhận được (status code + key response data)
+5. **Trạng thái** — Đánh dấu step đã confirm (✅) hay là expected behavior (⏳)
+
+**Format mẫu cho Exploit Chain section:**
+
+```html
+<div class="exploit-chain">
+  <div class="section-label">⚡ Exploit Chain — Step-by-Step</div>
+
+  <!-- Step 1 -->
+  <div class="chain-step">
+    <div class="step-header">
+      <span class="step-number">STEP 1</span>
+      <span class="step-title">Create Malicious Webhook</span>
+      <span class="step-status confirmed">✅ CONFIRMED</span>
+    </div>
+    <div class="step-desc">Tạo webhook với payload_url trỏ đến internal service.</div>
+    <div class="code-block-wrapper">
+      <pre class="http-block">
+<span class="http-method">POST</span> <span class="http-path">/api/extras/webhooks/</span>
+<span class="http-header-key">Content-Type:</span> <span class="http-header-val">application/json</span>
+<span class="http-body">{"name":"ssrf-poc","payload_url":"http://127.0.0.1:6379/","http_method":"GET"}</span>
+      </pre>
+      <button class="copy-btn">Copy</button>
+    </div>
+    <div class="step-response">
+      <span class="evidence-reason">✅ 201 Created — Webhook ID: 4</span>
+    </div>
+  </div>
+
+  <!-- Step 2, 3, ... -->
+</div>
+```
+
+**CSS bổ sung cho Exploit Chain:**
+```css
+.exploit-chain { margin: 24px 0; }
+.chain-step {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.step-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px;
+  background: rgba(88, 166, 255, 0.05);
+  border-bottom: 1px solid var(--border);
+}
+.step-number {
+  background: var(--accent-blue); color: #000;
+  padding: 3px 10px; border-radius: 4px;
+  font-size: 12px; font-weight: 700;
+}
+.step-title { font-weight: 600; flex: 1; }
+.step-status { font-size: 12px; }
+.step-status.confirmed { color: var(--confirmed-green); }
+.step-status.expected { color: var(--text-muted); }
+.step-desc { padding: 12px 18px; color: var(--text-secondary); font-size: 13px; }
+.step-response { padding: 10px 18px; }
+```
+
+**Quy tắc:**
+- Multi-step exploit (2+ HTTP requests để kích hoạt) → **BẮT BUỘC** có Exploit Chain section
+- Single-step exploit (1 request là đủ) → có thể bỏ qua, dùng Working POC Request thông thường
+- Mỗi step PHẢI có cURL command riêng để người đọc copy/paste từng bước
+- Response evidence cho từng step phải là response THỰC TẾ đã nhận được trong quá trình verify
+- Nếu một step chưa verify được (VD: cần RQ worker), đánh dấu ⏳ EXPECTED và ghi rõ điều kiện cần
 
 ---
 
